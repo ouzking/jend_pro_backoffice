@@ -1,0 +1,266 @@
+@import 'tailwindcss';
+
+/*
+ * JËND PRO design tokens — brand book "Maquettes" (siège, kit, app, cartes).
+ * Identity: forest green (the brand surface: t-shirt, cards, app icon),
+ * "Menthe Signal" mint (the square of the logo: signals, active states) and
+ * laiton / brass (gilding: rare premium highlights). Warm paper neutrals.
+ * Every color is a semantic variable switched by `.dark` — components never use
+ * raw palette values, so the whole console re-themes from this file.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f4f5f2;
+  --surface: #ffffff;
+  --surface-2: #f8f9f6;
+  --surface-3: #eff1ec;
+  --border: #e2e6df;
+  --border-strong: #cfd7cd;
+  --fg: #0e1a15;
+  --fg-muted: #4a5a52;
+  --fg-subtle: #84938b;
+  --ring: rgb(34 138 95 / 0.42);
+  --shadow-color: 150 30% 15%;
+
+  /* Forest green — primary actions, links, selection. */
+  --brand-50: #edf8f2;
+  --brand-100: #d2eedf;
+  --brand-200: #a6dcc0;
+  --brand-300: #6fc39c;
+  --brand-400: #3fa77a;
+  --brand-500: #228a5f;
+  --brand-600: #1a704d;
+  --brand-700: #165a3f;
+  --brand-800: #134835;
+  --brand-900: #103b2c;
+  --brand-fg: #ffffff;
+
+  /* Menthe Signal — the logo square: live signals, active indicators. */
+  --mint: #8fe3c2;
+  --mint-strong: #2fb383;
+
+  /* Laiton — brass gilding, used sparingly (premium highlights, owner/super admin). */
+  --accent: #b8864b;
+  --accent-soft: #f6eddf;
+  --accent-fg: #7a5424;
+
+  --success: #12a150;
+  --success-soft: #e7f7ee;
+  --warning: #b86e00;
+  --warning-soft: #fff4dd;
+  --danger: #d6334a;
+  --danger-soft: #fcebee;
+  --info: #2f6fed;
+  --info-soft: #eaf1ff;
+  --neutral-soft: #edf0eb;
+
+  --sidebar: #08130f;
+  --sidebar-2: #0d1d17;
+  --sidebar-fg: #c9d6cf;
+  --sidebar-muted: #7b8f87;
+  --sidebar-border: rgb(255 255 255 / 0.06);
+
+  /* Categorical chart palette, fixed order, validated (dataviz validate_palette:
+     lightness band, chroma, CVD ΔE >= 8.4 adjacent, contrast >= 3:1) for both surfaces.
+     1 forest · 2 indigo · 3 brass · 4 rose · 5 sky. */
+  --chart-1: #1d7a52;
+  --chart-2: #6366f1;
+  --chart-3: #a8742c;
+  --chart-4: #db2777;
+  --chart-5: #0284c7;
+  --chart-grid: #e8ebe5;
+}
+
+.dark {
+  --bg: #060d0a;
+  --surface: #0c1612;
+  --surface-2: #101c17;
+  --surface-3: #15241e;
+  --border: #1d2f27;
+  --border-strong: #284035;
+  --fg: #e7efe9;
+  --fg-muted: #a1b3aa;
+  --fg-subtle: #6b8077;
+  --ring: rgb(143 227 194 / 0.45);
+  --shadow-color: 150 60% 2%;
+
+  --brand-fg: #04140d;
+  --accent: #c99a5e;
+  --accent-soft: rgb(201 154 94 / 0.14);
+  --accent-fg: #dcb27c;
+  --success: #3ccf7f;
+  --success-soft: rgb(60 207 127 / 0.13);
+  --warning: #f0b43c;
+  --warning-soft: rgb(240 180 60 / 0.13);
+  --danger: #ff6b7a;
+  --danger-soft: rgb(255 107 122 / 0.13);
+  --info: #6c9bff;
+  --info-soft: rgb(108 155 255 / 0.13);
+  --neutral-soft: #172720;
+
+  --sidebar: #040a08;
+  --sidebar-2: #0a1712;
+  --chart-1: #2f9e6e;
+  --chart-2: #7c83f0;
+  --chart-3: #b8842a;
+  --chart-4: #e8559a;
+  --chart-5: #2a9fe0;
+  --chart-grid: #1a2a23;
+}
+
+@theme inline {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Geometric display face of the wordmark (Futura family). */
+  --font-display: 'Jost', 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-fg: var(--brand-fg);
+
+  --color-mint: var(--mint);
+  --color-mint-strong: var(--mint-strong);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-neutral-soft: var(--neutral-soft);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-2: var(--sidebar-2);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-border: var(--sidebar-border);
+
+  --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.06);
+  --shadow-card: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 1px 3px hsl(var(--shadow-color) / 0.04);
+  --shadow-pop: 0 12px 32px -8px hsl(var(--shadow-color) / 0.22), 0 4px 10px -4px hsl(var(--shadow-color) / 0.12);
+  --shadow-glow: 0 0 0 1px rgb(143 227 194 / 0.35), 0 8px 24px -10px rgb(34 138 95 / 0.55);
+
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+
+  --animate-fade-in: fade-in 160ms ease-out;
+  --animate-scale-in: scale-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-in-right: slide-in-right 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-up: slide-up 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  ::selection {
+    background: rgb(34 138 95 / 0.2);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-3) 25%, var(--neutral-soft) 37%, var(--surface-3) 63%);
+    background-size: 400% 100%;
+    animation: var(--animate-shimmer);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}

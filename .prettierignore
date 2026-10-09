@@ -1,0 +1,4 @@
+dist
+node_modules
+src/core/api/database.types.ts
+package-lock.json
