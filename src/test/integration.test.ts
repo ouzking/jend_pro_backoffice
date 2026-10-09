@@ -9,7 +9,7 @@
  * and returns the shape the mappers expect — and that a merchant is refused.
  */
 import { createClient } from '@supabase/supabase-js'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { Database } from '@/core/api/database.types'
 import type { SupabaseClient } from '@/core/api/supabase'
 import { createSupabaseAuthRepository } from '@/core/auth/auth.supabase'
@@ -32,6 +32,21 @@ const URL = process.env.VITE_SUPABASE_URL ?? 'http://127.0.0.1:54421'
 const KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? ''
 const PASSWORD = 'jendpro-demo'
 const page = { page: 1, pageSize: 10 }
+
+/** RFC 6238 TOTP (SHA-1, 30 s, 6 digits) — what an authenticator app computes. */
+async function totp(base32Secret: string, now = Date.now()): Promise<string> {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+  let bits = ''
+  for (const ch of base32Secret.replace(/=+$/, '').toUpperCase()) bits += alphabet.indexOf(ch).toString(2).padStart(5, '0')
+  const key = new Uint8Array(Math.floor(bits.length / 8)).map((_, i) => parseInt(bits.slice(i * 8, i * 8 + 8), 2))
+  const counter = new ArrayBuffer(8)
+  new DataView(counter).setUint32(4, Math.floor(now / 30_000))
+  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign'])
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, counter))
+  const offset = mac[mac.length - 1] & 0x0f
+  const code = ((mac[offset] & 0x7f) << 24) | (mac[offset + 1] << 16) | (mac[offset + 2] << 8) | mac[offset + 3]
+  return String(code % 1_000_000).padStart(6, '0')
+}
 
 function client(): SupabaseClient {
   return createClient<Database>(URL, KEY, { auth: { persistSession: false, autoRefreshToken: false } }) as SupabaseClient
@@ -99,6 +114,27 @@ describe.skipIf(!enabled)('integration — back-office repositories against jend
     const ticket = await repo.get(list.items[0].id)
     expect(ticket.messages.length).toBeGreaterThanOrEqual(2)
     expect(ticket.messages.some((m) => m.isStaff)).toBe(true)
+  })
+
+  let enrolledFactor: string | null = null
+
+  afterAll(async () => {
+    // Leave the demo account as found (no second factor).
+    if (enrolledFactor) await createSupabaseAuthRepository(admin).unenrollTotp(enrolledFactor)
+  })
+
+  it('MFA: a sensitive action is refused until the session passes a real TOTP check', async () => {
+    const auth = createSupabaseAuthRepository(admin)
+    const draft = { title: 'Test 2FA', body: 'Brouillon', audience: 'ALL' as const }
+    await expect(createSupabaseAnnouncementsRepository(admin).save(draft)).rejects.toMatchObject({ code: 'MFA_REQUIRED' })
+
+    const enrollment = await auth.enrollTotp('Intégration')
+    enrolledFactor = enrollment.factorId
+    await auth.verifyTotp(enrollment.factorId, await totp(enrollment.secret))
+
+    const access = await auth.getPlatformAccess()
+    expect(access).toMatchObject({ mfaEnrolled: true, aal: 'aal2' })
+    expect((await auth.listTotpFactors()).some((f) => f.id === enrollment.factorId && f.status === 'verified')).toBe(true)
   })
 
   it('announcements: draft, count, delete (never sent in tests)', async () => {

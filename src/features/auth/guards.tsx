@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/States'
 import { useAuth } from '@/core/auth'
 import type { PermissionRequirement } from '@/core/permissions/permissions'
 import { paths } from '@/core/router/navigation'
+import { MfaChallenge } from './MfaChallenge'
 
 function Splash() {
   return (
@@ -62,6 +63,7 @@ export function RequireStaff({ children }: { children: ReactNode }) {
       />
     )
   }
+  if (status === 'mfa') return <MfaChallenge />
   if (status === 'forbidden') {
     return (
       <FullScreenMessage

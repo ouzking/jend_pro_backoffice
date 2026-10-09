@@ -43,6 +43,7 @@ const MESSAGES: Record<string, string> = {
   ANNOUNCEMENT_NOT_EDITABLE: 'Cette annonce a déjà été envoyée et ne peut plus être modifiée.',
   AUDIENCE_VALUE_REQUIRED: 'Précisez la cible de l’annonce.',
   RATE_LIMITED: 'Trop de demandes. Réessayez plus tard.',
+  MFA_REQUIRED: 'Action sensible : validez votre identité avec la double authentification (Paramètres › Mon compte).',
   NETWORK_ERROR: 'Connexion impossible. Vérifiez votre réseau puis réessayez.',
   INVALID_CREDENTIALS: 'E-mail ou mot de passe incorrect.',
 }

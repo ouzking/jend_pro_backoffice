@@ -51,7 +51,47 @@ export function createSupabaseAuthRepository(client: SupabaseClient): AuthReposi
       const rows = unwrap(await client.rpc('get_my_platform_access'))
       const row = rows?.[0]
       if (!row) return null
-      return { role: row.role, status: row.status, permissions: toPermissionSet(row.permissions ?? []) }
+      return {
+        role: row.role,
+        status: row.status,
+        permissions: toPermissionSet(row.permissions ?? []),
+        mfaPermissions: toPermissionSet(row.mfa_permissions ?? []),
+        mfaEnrolled: Boolean(row.mfa_enrolled),
+        aal: row.aal === 'aal2' ? 'aal2' : 'aal1',
+      }
+    },
+
+    async listTotpFactors() {
+      const { data, error } = await client.auth.mfa.listFactors()
+      if (error) throw toApiError(error)
+      return data.all
+        .filter((f) => f.factor_type === 'totp')
+        .map((f) => ({ id: f.id, friendlyName: f.friendly_name ?? null, status: f.status === 'verified' ? 'verified' : 'unverified', createdAt: f.created_at }))
+    },
+
+    async enrollTotp(friendlyName) {
+      // An abandoned enrollment (QR shown, never verified) would block a new one.
+      const { data: list } = await client.auth.mfa.listFactors()
+      for (const f of list?.all ?? []) {
+        if (f.factor_type === 'totp' && f.status !== 'verified') await client.auth.mfa.unenroll({ factorId: f.id })
+      }
+      const { data, error } = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName, issuer: 'JËND PRO Console' })
+      if (error) throw toApiError(error)
+      return { factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret }
+    },
+
+    async verifyTotp(factorId, code) {
+      const { error } = await client.auth.mfa.challengeAndVerify({ factorId, code: code.replace(/\s/g, '') })
+      if (error) {
+        if (/invalid|expired|code/i.test(error.message))
+          throw new ApiError('INVALID_MFA_CODE', 'validation', 'Code incorrect ou expiré. Réessayez avec le code affiché maintenant.')
+        throw toApiError(error)
+      }
+    },
+
+    async unenrollTotp(factorId) {
+      const { error } = await client.auth.mfa.unenroll({ factorId })
+      if (error) throw toApiError(error)
     },
   }
 }

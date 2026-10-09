@@ -1,5 +1,20 @@
 import type { PlatformAccess } from '@/core/permissions/permissions'
 
+export interface MfaFactor {
+  id: string
+  friendlyName: string | null
+  status: 'verified' | 'unverified'
+  createdAt: string
+}
+
+export interface TotpEnrollment {
+  factorId: string
+  /** SVG image (data URL) to scan with Google Authenticator, Authy… */
+  qrCode: string
+  /** Manual entry fallback. */
+  secret: string
+}
+
 export interface AuthUser {
   id: string
   email: string
@@ -20,4 +35,12 @@ export interface AuthRepository {
   requestPasswordReset(email: string, redirectTo: string): Promise<void>
   /** null when the account is not JËND PRO staff. */
   getPlatformAccess(): Promise<PlatformAccess | null>
+
+  // Second factor (TOTP). The server enforces it; these only drive the flow.
+  listTotpFactors(): Promise<MfaFactor[]>
+  /** Starts an enrollment (removes abandoned unverified factors first). */
+  enrollTotp(friendlyName: string): Promise<TotpEnrollment>
+  /** Challenge + verify: upgrades the session to aal2. */
+  verifyTotp(factorId: string, code: string): Promise<void>
+  unenrollTotp(factorId: string): Promise<void>
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, LogOut, Minus, Moon, ShieldCheck, Sun, UserPlus } from 'lucide-react'
+import { Check, LogOut, Minus, Moon, Sun, UserPlus } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { DataTable, type Column } from '@/components/tables/DataTable'
 import { Avatar, Identity } from '@/components/ui/Avatar'
@@ -21,6 +21,7 @@ import { formatDate, formatRelative } from '@/core/utils/format'
 import { useUrlState } from '@/core/utils/hooks'
 import { applyTheme, useTheme } from '@/core/utils/theme'
 import { useGrantRole, useRoleMatrix, useSetAdminStatus, useTeam } from './api'
+import { MfaCard } from './MfaCard'
 import type { PlatformAdmin } from './team.repository'
 
 const PERMISSION_LABELS: Record<string, string> = {
@@ -93,10 +94,10 @@ function ProfileTab() {
             </p>
           </CardBody>
         </Card>
+        <MfaCard />
         <Card>
-          <CardHeader title="Sécurité" icon={<ShieldCheck />} />
-          <CardBody className="space-y-3 text-[13px] text-fg-muted">
-            <p>Vos droits sont vérifiés par le serveur à chaque action et réévalués toutes les 5 minutes.</p>
+          <CardBody className="flex items-center justify-between gap-3 pt-5 text-[13px] text-fg-muted">
+            <span>Droits vérifiés par le serveur à chaque action.</span>
             <Button variant="danger" size="sm" leftIcon={<LogOut className="size-4" />} onClick={() => void signOut()}>
               Se déconnecter
             </Button>

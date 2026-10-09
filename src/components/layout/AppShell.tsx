@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useState } from 'react'
-import { Outlet, useLocation } from 'react-router'
+import { Link, Outlet, useLocation } from 'react-router'
+import { ShieldAlert, X } from 'lucide-react'
 import { useAuth } from '@/core/auth'
 import { paths } from '@/core/router/navigation'
 import { cn } from '@/core/utils/cn'
@@ -20,7 +21,10 @@ function readCollapsed(): boolean {
 }
 
 export function AppShell() {
-  const { can } = useAuth()
+  const { can, access } = useAuth()
+  const [mfaBannerHidden, setMfaBannerHidden] = useState(false)
+  // Roles holding sensitive permissions need a second factor to use them (enforced server-side).
+  const mfaMissing = Boolean(access && !access.mfaEnrolled && [...access.mfaPermissions].some((p) => access.permissions.has(p)))
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -81,6 +85,21 @@ export function AppShell() {
           openTicketsTotal={openTickets.data?.total}
         />
         <main id="main" className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          {mfaMissing && !mfaBannerHidden && location.pathname !== paths.settings && (
+            <div role="status" className="mb-6 flex items-center gap-3 rounded-xl border border-warning/30 bg-warning-soft px-4 py-3 text-[13px] text-warning">
+              <ShieldAlert className="size-4 shrink-0" />
+              <p className="flex-1">
+                <span className="font-semibold">Activez la double authentification</span> pour utiliser les actions sensibles de votre rôle (suspension,
+                paiements, équipe, annonces).
+              </p>
+              <Link to={paths.settings} className="font-semibold whitespace-nowrap underline-offset-2 hover:underline">
+                Activer
+              </Link>
+              <button type="button" onClick={() => setMfaBannerHidden(true)} aria-label="Masquer" className="opacity-70 hover:opacity-100">
+                <X className="size-4" />
+              </button>
+            </div>
+          )}
           <Suspense fallback={<PageSkeleton />}>
             <div key={location.pathname} className="animate-slide-up">
               <Outlet />

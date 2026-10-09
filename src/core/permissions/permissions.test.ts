@@ -4,7 +4,7 @@ import { routes } from '@/app/router'
 import { can, toPermissionSet, type PlatformAccess, type PlatformPermission } from './permissions'
 
 function access(perms: PlatformPermission[], status: PlatformAccess['status'] = 'ACTIVE'): PlatformAccess {
-  return { role: 'SUPPORT', status, permissions: toPermissionSet(perms) }
+  return { role: 'SUPPORT', status, permissions: toPermissionSet(perms), mfaPermissions: new Set(), mfaEnrolled: false, aal: 'aal1' }
 }
 
 describe('can', () => {
