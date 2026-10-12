@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { fakeAuthRepository, Providers, STAFF, staffAccess } from '@/test/utils'
 import { RequireStaff } from './guards'
+import LoginPage from './LoginPage'
 
 function renderProtected(repository: ReturnType<typeof fakeAuthRepository>) {
   const router = createMemoryRouter(
@@ -58,5 +59,32 @@ describe('password reset / first access', () => {
   it('goes straight to the console after a normal login', async () => {
     renderProtected(fakeAuthRepository({ user: STAFF, access: staffAccess(['support.read']) }))
     expect(await screen.findByText('Console')).toBeInTheDocument()
+  })
+})
+
+describe('login page — forgotten password', () => {
+  it('sends the reset link in one click when the e-mail is already typed', async () => {
+    const user = userEvent.setup()
+    const router = createMemoryRouter([{ path: '/connexion', element: <LoginPage /> }], { initialEntries: ['/connexion'] })
+    render(
+      <Providers repository={fakeAuthRepository({ user: null })}>
+        <RouterProvider router={router} />
+      </Providers>,
+    )
+    await user.type(await screen.findByLabelText('Adresse e-mail'), 'ousmane@jendpro.sn')
+    await user.click(screen.getByRole('button', { name: 'Mot de passe oublié ?' }))
+    expect(await screen.findByText('Vérifiez votre boîte mail')).toBeInTheDocument()
+  })
+
+  it('opens the reset form when no e-mail is typed yet', async () => {
+    const user = userEvent.setup()
+    const router = createMemoryRouter([{ path: '/connexion', element: <LoginPage /> }], { initialEntries: ['/connexion'] })
+    render(
+      <Providers repository={fakeAuthRepository({ user: null })}>
+        <RouterProvider router={router} />
+      </Providers>,
+    )
+    await user.click(await screen.findByRole('button', { name: 'Mot de passe oublié ?' }))
+    expect(screen.getByRole('button', { name: /Envoyer le lien/ })).toBeInTheDocument()
   })
 })

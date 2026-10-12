@@ -9,6 +9,8 @@ import { useAuth } from '@/core/auth'
 
 type Mode = 'login' | 'reset' | 'reset-sent'
 
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
 export default function LoginPage() {
   const { status, signIn, requestPasswordReset } = useAuth()
   const location = useLocation()
@@ -20,6 +22,20 @@ export default function LoginPage() {
 
   const from = (location.state as { from?: string } | null)?.from ?? '/'
   if (status === 'ready') return <Navigate to={from} replace />
+
+  const sendReset = async () => {
+    setPending(true)
+    setError(null)
+    try {
+      await requestPasswordReset(email)
+      setMode('reset-sent')
+    } catch (err) {
+      setMode('reset')
+      setError(toApiError(err).message)
+    } finally {
+      setPending(false)
+    }
+  }
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -94,7 +110,8 @@ export default function LoginPage() {
               </div>
               <h2 className="text-2xl font-extrabold tracking-tight text-fg">Vérifiez votre boîte mail</h2>
               <p className="mt-2 text-sm text-fg-muted">
-                Si un compte existe pour <span className="font-semibold text-fg">{email}</span>, un lien de réinitialisation vient d’être envoyé.
+                Si un compte existe pour <span className="font-semibold text-fg">{email}</span>, un lien de réinitialisation vient d’être envoyé. Pensez à
+                vérifier les courriers indésirables ; le lien est valable une heure.
               </p>
               <Button className="mt-8 w-full" size="lg" variant="secondary" leftIcon={<ArrowLeft className="size-4" />} onClick={() => setMode('login')}>
                 Retour à la connexion
@@ -156,7 +173,9 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => {
                   setError(null)
-                  setMode(mode === 'login' ? 'reset' : 'login')
+                  // E-mail already typed: one click sends the link (what people expect).
+                  if (mode === 'login' && EMAIL_RE.test(email.trim())) void sendReset()
+                  else setMode(mode === 'login' ? 'reset' : 'login')
                 }}
                 className="mt-4 w-full text-center text-[13px] font-semibold text-fg-muted transition-colors hover:text-fg"
               >
