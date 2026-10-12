@@ -15,7 +15,9 @@ describe('readEnv', () => {
   })
 
   it('fails fast when configuration is missing', () => {
-    expect(() => readEnv({})).toThrow(/Configuration manquante/)
+    expect(() => readEnv({})).toThrow('Configuration manquante : VITE_SUPABASE_URL et VITE_SUPABASE_PUBLISHABLE_KEY')
+    expect(() => readEnv({ VITE_SUPABASE_URL: 'https://x.supabase.co' })).toThrow('Configuration manquante : VITE_SUPABASE_PUBLISHABLE_KEY (')
+    expect(() => readEnv({ VITE_SUPABASE_URL: 'lmyhrksehcodyylzphyn', VITE_SUPABASE_PUBLISHABLE_KEY: 'k' })).toThrow(/invalide/)
   })
 
   it('refuses a secret / service_role key in the browser', () => {

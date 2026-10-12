@@ -12,8 +12,12 @@ export function readEnv(source: Record<string, string | undefined>): AppEnv {
   const supabaseUrl = source.VITE_SUPABASE_URL?.trim()
   const supabasePublishableKey = source.VITE_SUPABASE_PUBLISHABLE_KEY?.trim()
 
+  const missing = [!supabaseUrl && 'VITE_SUPABASE_URL', !supabasePublishableKey && 'VITE_SUPABASE_PUBLISHABLE_KEY'].filter(Boolean)
   if (!supabaseUrl || !supabasePublishableKey) {
-    throw new Error('Configuration manquante : VITE_SUPABASE_URL et VITE_SUPABASE_PUBLISHABLE_KEY doivent être définis (voir .env.example).')
+    throw new Error(`Configuration manquante : ${missing.join(' et ')} (voir .env.example).`)
+  }
+  if (!/^https?:\/\/[^\s/]+/.test(supabaseUrl)) {
+    throw new Error(`VITE_SUPABASE_URL invalide : « ${supabaseUrl} » (attendu : https://<projet>.supabase.co).`)
   }
   if (/service_role|sb_secret_/i.test(supabasePublishableKey) || isServiceRoleJwt(supabasePublishableKey)) {
     throw new Error('Clé interdite : la clé service_role / secret ne doit jamais être utilisée dans le back-office.')
