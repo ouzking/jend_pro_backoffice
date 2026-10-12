@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, LogOut, Minus, Moon, Sun, UserPlus } from 'lucide-react'
+import { Check, KeyRound, LogOut, Minus, Moon, Sun, UserPlus } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { DataTable, type Column } from '@/components/tables/DataTable'
 import { Avatar, Identity } from '@/components/ui/Avatar'
@@ -22,6 +22,7 @@ import { useUrlState } from '@/core/utils/hooks'
 import { applyTheme, useTheme } from '@/core/utils/theme'
 import { useGrantRole, useRoleMatrix, useSetAdminStatus, useTeam } from './api'
 import { MfaCard } from './MfaCard'
+import { ChangePasswordModal } from '@/features/auth/PasswordForm'
 import type { PlatformAdmin } from './team.repository'
 
 const PERMISSION_LABELS: Record<string, string> = {
@@ -44,6 +45,7 @@ const ROLES = Object.keys(PLATFORM_ROLE) as PlatformRole[]
 
 function ProfileTab() {
   const { user, access, signOut } = useAuth()
+  const [changingPassword, setChangingPassword] = useState(false)
   const [theme] = useTheme()
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -97,13 +99,16 @@ function ProfileTab() {
         <MfaCard />
         <Card>
           <CardBody className="flex items-center justify-between gap-3 pt-5 text-[13px] text-fg-muted">
-            <span>Droits vérifiés par le serveur à chaque action.</span>
+            <Button size="sm" leftIcon={<KeyRound className="size-4" />} onClick={() => setChangingPassword(true)}>
+              Changer mon mot de passe
+            </Button>
             <Button variant="danger" size="sm" leftIcon={<LogOut className="size-4" />} onClick={() => void signOut()}>
               Se déconnecter
             </Button>
           </CardBody>
         </Card>
       </div>
+      {changingPassword && <ChangePasswordModal onClose={() => setChangingPassword(false)} />}
     </div>
   )
 }

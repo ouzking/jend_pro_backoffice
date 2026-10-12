@@ -21,7 +21,7 @@ export function staffAccess(permissions: PlatformPermission[], overrides: Partia
 }
 
 /** In-memory AuthRepository: lets tests drive sessions without Supabase. */
-export function fakeAuthRepository(initial: { user: AuthUser | null; access?: PlatformAccess | null; accessError?: unknown }) {
+export function fakeAuthRepository(initial: { user: AuthUser | null; access?: PlatformAccess | null; accessError?: unknown; recovery?: boolean }) {
   let user = initial.user
   let access = initial.access ?? null
   let accessError = initial.accessError
@@ -45,6 +45,10 @@ export function fakeAuthRepository(initial: { user: AuthUser | null; access?: Pl
       listeners.forEach((l) => l(null))
     },
     requestPasswordReset: async () => undefined,
+    consumeRecoveryHint: () => Boolean(initial.recovery),
+    updatePassword: async (newPassword) => {
+      if (newPassword.length < 8) throw new ApiError('WEAK_PASSWORD', 'validation', 'Mot de passe trop faible.')
+    },
     getPlatformAccess: async () => {
       if (accessError) throw accessError
       return access

@@ -49,6 +49,38 @@ insert into public.platform_admins (user_id, role)
 select id, 'SUPER_ADMIN' from auth.users where email = '<email>';
 ```
 
+## Mise en ligne (Vercel)
+
+Configuration versionnée dans `vercel.json` : routes de l'application, cache des fichiers et
+en-têtes de sécurité (CSP stricte limitée à Supabase et Google Fonts, interdiction d'affichage
+en iframe, pas d'indexation, HTTPS forcé).
+
+1. vercel.com → **Add New… → Project** → importer `ouzking/jend_pro_backoffice`
+   (Vercel détecte Vite ; ne rien changer).
+2. **Environment Variables** (Production) :
+   `VITE_SUPABASE_URL` = `https://lmyhrksehcodyylzphyn.supabase.co`,
+   `VITE_SUPABASE_PUBLISHABLE_KEY` = clé *publishable* (jamais la clé secrète).
+3. **Deploy**. Ensuite, chaque push sur `main` est mis en ligne automatiquement ;
+   chaque pull request reçoit une URL de prévisualisation.
+4. *(Facultatif)* **Settings → Domains** : ajouter par ex. `console.jendpro.sn`.
+5. Supabase → **Authentication → URL Configuration** → **Redirect URLs** : ajouter
+   `https://<adresse-de-la-console>/**`, sinon les liens « mot de passe oublié » ne
+   reviennent pas vers la console.
+
+## Donner l'accès à un membre de l'équipe
+
+1. **Créer son compte** : Supabase → Authentication → Users → **Add user → Create new user**
+   (son e-mail, un mot de passe provisoire, cocher *Auto Confirm User*).
+   *(S'il a déjà un compte JËND PRO, passer à l'étape 2.)*
+2. **Lui donner un rôle** : dans la console, **Paramètres → Équipe → Ajouter / changer un rôle**
+   (son e-mail + le rôle). Réservé au super admin, avec la double authentification activée.
+3. **Lui envoyer** l'adresse de la console. À la première connexion, il clique sur
+   « Mot de passe oublié ? », reçoit un e-mail et **choisit son propre mot de passe**
+   (écran dédié), puis active sa double authentification dans Paramètres.
+
+Retirer un accès : Paramètres → Équipe → **Suspendre** (effet immédiat, son compte JËND PRO
+reste utilisable comme commerçant).
+
 ## Scripts
 
 | Script | Rôle |

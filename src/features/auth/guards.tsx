@@ -9,6 +9,7 @@ import { useAuth } from '@/core/auth'
 import type { PermissionRequirement } from '@/core/permissions/permissions'
 import { paths } from '@/core/router/navigation'
 import { MfaChallenge } from './MfaChallenge'
+import { SetPasswordScreen } from './PasswordForm'
 
 function Splash() {
   return (
@@ -39,7 +40,7 @@ function FullScreenMessage({ icon, title, description, actions }: { icon: ReactN
  * UX only — every admin_* RPC re-checks the permission server-side.
  */
 export function RequireStaff({ children }: { children: ReactNode }) {
-  const { status, user, error, signOut, refreshAccess } = useAuth()
+  const { status, user, error, signOut, refreshAccess, passwordRecovery } = useAuth()
   const location = useLocation()
 
   if (status === 'loading') return <Splash />
@@ -83,6 +84,7 @@ export function RequireStaff({ children }: { children: ReactNode }) {
       />
     )
   }
+  if (passwordRecovery) return <SetPasswordScreen />
   return <>{children}</>
 }
 

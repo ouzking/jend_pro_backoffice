@@ -28,8 +28,14 @@ export interface AuthUser {
  */
 export interface AuthRepository {
   getCurrentUser(): Promise<AuthUser | null>
-  /** Subscribes to sign-in / sign-out / token refresh. Returns an unsubscribe function. */
-  onAuthChange(listener: (user: AuthUser | null) => void): () => void
+  /**
+   * Subscribes to sign-in / sign-out / token refresh. Returns an unsubscribe function.
+   * `recovery` = the session comes from a password-reset link: a new password must be chosen.
+   */
+  onAuthChange(listener: (user: AuthUser | null, event?: { recovery: boolean }) => void): () => void
+  /** True once if the page was opened from a password-reset link (before the SDK cleans the URL). */
+  consumeRecoveryHint(): boolean
+  updatePassword(newPassword: string): Promise<void>
   signIn(email: string, password: string): Promise<void>
   signOut(): Promise<void>
   requestPasswordReset(email: string, redirectTo: string): Promise<void>

@@ -15,6 +15,8 @@ export function toAuthUser(user: User | null | undefined): AuthUser | null {
 }
 
 export function createSupabaseAuthRepository(client: SupabaseClient): AuthRepository {
+  // Read synchronously at startup: the SDK removes the tokens from the URL right after.
+  let recoveryHint = typeof window !== 'undefined' && /type=recovery/.test(`${window.location.hash}${window.location.search}`)
   return {
     async getCurrentUser() {
       const { data, error } = await client.auth.getSession()
@@ -23,8 +25,26 @@ export function createSupabaseAuthRepository(client: SupabaseClient): AuthReposi
     },
 
     onAuthChange(listener) {
-      const { data } = client.auth.onAuthStateChange((_event, session) => listener(toAuthUser(session?.user)))
+      const { data } = client.auth.onAuthStateChange((event, session) => listener(toAuthUser(session?.user), { recovery: event === 'PASSWORD_RECOVERY' }))
       return () => data.subscription.unsubscribe()
+    },
+
+    consumeRecoveryHint() {
+      const hint = recoveryHint
+      recoveryHint = false
+      return hint
+    },
+
+    async updatePassword(newPassword) {
+      const { error } = await client.auth.updateUser({ password: newPassword })
+      if (error) {
+        if (/same|different from the old/i.test(error.message))
+          throw new ApiError('SAME_PASSWORD', 'validation', 'Choisissez un mot de passe différent de l’ancien.')
+        if (/weak|short|at least/i.test(error.message))
+          throw new ApiError('WEAK_PASSWORD', 'validation', 'Mot de passe trop faible : 8 caractères minimum, mélangez lettres et chiffres.')
+        if (/aal2|mfa|assurance/i.test(error.message)) throw new ApiError('MFA_REQUIRED', 'forbidden', 'Validez d’abord votre code de double authentification.')
+        throw toApiError(error)
+      }
     },
 
     async signIn(email, password) {

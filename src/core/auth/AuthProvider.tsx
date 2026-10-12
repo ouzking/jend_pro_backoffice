@@ -31,6 +31,9 @@ export interface AuthContextValue {
   can: (requirement: PermissionRequirement | undefined) => boolean
   /** The role grants it, but the server will require a TOTP-verified session. */
   needsMfa: (permission: PlatformPermission) => boolean
+  /** Opened from a password-reset link: a new password must be chosen before anything else. */
+  passwordRecovery: boolean
+  updatePassword: (newPassword: string) => Promise<void>
   /** Login second step: verifies the code of the enrolled factor. */
   verifyMfa: (code: string) => Promise<void>
   mfa: MfaApi
@@ -52,6 +55,7 @@ export function AuthProvider({ repository, children }: { repository: AuthReposit
   const [access, setAccess] = useState<PlatformAccess | null>(null)
   const [error, setError] = useState<ApiError | null>(null)
   const currentUserId = useRef<string | null>(null)
+  const [passwordRecovery, setPasswordRecovery] = useState(() => repository.consumeRecoveryHint())
 
   const resolve = useCallback(
     async (nextUser: AuthUser | null) => {
@@ -90,7 +94,8 @@ export function AuthProvider({ repository, children }: { repository: AuthReposit
       .catch(() => {
         if (active) void resolve(null)
       })
-    const unsubscribe = repository.onAuthChange((u) => {
+    const unsubscribe = repository.onAuthChange((u, event) => {
+      if (event?.recovery) setPasswordRecovery(true)
       // Token refreshes re-emit the same user: only react to identity changes.
       if ((u?.id ?? null) !== currentUserId.current) void resolve(u)
     })
@@ -120,6 +125,11 @@ export function AuthProvider({ repository, children }: { repository: AuthReposit
       access,
       error,
       can: (requirement) => status === 'ready' && can(access, requirement),
+      passwordRecovery,
+      updatePassword: async (newPassword) => {
+        await repository.updatePassword(newPassword)
+        setPasswordRecovery(false)
+      },
       needsMfa: (permission) => status === 'ready' && can(access, permission) && needsMfa(access, permission),
       verifyMfa: async (code) => {
         const factor = (await repository.listTotpFactors()).find((f) => f.status === 'verified')
@@ -150,7 +160,7 @@ export function AuthProvider({ repository, children }: { repository: AuthReposit
       requestPasswordReset: (email) => repository.requestPasswordReset(email, `${window.location.origin}/connexion`),
       refreshAccess,
     }),
-    [status, user, access, error, repository, resolve, refreshAccess],
+    [status, user, access, error, passwordRecovery, repository, resolve, refreshAccess],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
